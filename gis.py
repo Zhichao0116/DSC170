@@ -7,31 +7,37 @@ import io
 
 # Set Streamlit page
 st.set_page_config(layout="wide")
-start_choice = st.selectbox("Overview or detail?", ["Overview", "Start!"])
+start_choice = st.selectbox("Overview or Start?", ["Overview", "Start!"])
 
 if start_choice == "Overview":
-    st.title('Jordan Public Datasets')
-    st.image("overview/Average Household Size in Jordan.png", use_column_width=True)
-    st.image("overview/Health_jordan.png", use_column_width=True)
-    st.image("overview/Healthcare Facilities in Jordan.png", use_column_width=True)
-    st.image("overview/Jordan Boundaries.png", use_column_width=True)
-    st.image("overview/Jordan Health EPE.png", use_column_width=True)
-    st.image("overview/Jordan Health.png", use_column_width=True)
-    st.image("overview/Jordan Purchasing Power.png", use_column_width=True)
-    st.image("overview/jordan soviet.png", use_column_width=True)
-    st.image("overview/jordan health activities.png", use_column_width=True)
-
     st.markdown("## What can we do with these maps?")
     st.markdown("* 1. View dataframe of jordan")
     st.markdown("* 2. Visualize data on a map")
     st.markdown("* 3. Filter data based on certain attributes and visualize it on a map")
     st.markdown("* 4. Download (filtered) dataset")
 
+    st.title('Jordan Public Datasets')
+    type_choice = st.selectbox("Choose a map", ["Please select a map type", "Household", "Climate","Healthcare","Administrative"])
+    if type_choice in ["Household"]:
+        st.image("overview/Average Household Size in Jordan.png", use_column_width=True)
+    if type_choice in ["Climate"]:
+        st.markdown("## Jordan SPI")
+        st.image("overview/spi.png", use_column_width=True)
+    if type_choice in ["Healthcare"]:
+        st.image("overview/Health_jordan.png", use_column_width=True)
+        st.image("overview/Healthcare Facilities in Jordan.png", use_column_width=True)
+        st.image("overview/jordan health activities.png", use_column_width=True)
+        st.image("overview/Jordan Health EPE.png", use_column_width=True)
+        st.image("overview/Jordan Health.png", use_column_width=True)
+    if type_choice in ["Administrative"]:
+        st.image("overview/Jordan Boundaries.png", use_column_width=True)
+        st.image("overview/Jordan Purchasing Power.png", use_column_width=True)
+        st.image("overview/jordan soviet.png", use_column_width=True)
 
 if start_choice == "Start!":
     st.title("Map Visualization")
 # Choose map type with dropdown
-    map_type_choice = st.selectbox("Choose a map", ["Please select a map type", "Household", "Climate","Healthcare","Boundaries"])
+    map_type_choice = st.selectbox("Choose a type", ["Please select a map type", "Household", "Climate","Healthcare","Administrative"])
     if map_type_choice in ["Household"]:
         map_choice1 = st.selectbox("Choose a map", ["Please select a map type", "Average Household Size in Jordan States", "Average Household Size in Jordan"])
         # Display other functionalities only if a map type is selected
@@ -81,35 +87,40 @@ if start_choice == "Start!":
             # Display ID and name reference table
             with col1:
                 st.subheader("ID and Name Reference Table")
-                st.dataframe(id_name_df)
+                st.dataframe(id_name_df, width=250)
 
             # Add filters
             with col2:
-                selected_column = st.selectbox("Select a column to filter", gdf.columns)
+                selected_column = st.selectbox("Select a column to filter", gdf.columns[18:])
                 filter_values = st.multiselect("Select values to keep", gdf[selected_column].unique())
                 if filter_values:
                     filtered_gdf = gdf[gdf[selected_column].isin(filter_values)].copy()
                 else:
                     filtered_gdf = gdf.copy()
                 generate_map = st.button("Generate Map")
+            
+            with col3:
+                param = pd.read_csv("dataset/Average Household Size in Jordan/para.csv")
+                st.subheader("Parameter Reference Table")
+                st.dataframe(param, width=250)
 
             # Display map when 'Generate Map' button is clicked
             if generate_map:
-                with st.spinner("Generating map..."):
+                with col2:
                     if map_choice1 == "Average Household Size in Jordan States":
                         map_to_display = create_map(filtered_gdf, selected_column)
                     elif map_choice1 == "Average Household Size in Jordan":
                         map_to_display = create_map(gdf_jordan, selected_column)
-                    folium_static(map_to_display, width=800, height=600)
-                with col2:
+                    folium_static(map_to_display, width=1087, height=600)
                     st.subheader("Generated GeoDataFrame")
                     filtered_gdf['geometry'] = filtered_gdf['geometry'].astype(str)
-                    st.dataframe(filtered_gdf, width=1300)
+                    filtered_gdf_slice = filtered_gdf.iloc[:, 18:]
+                    st.dataframe(filtered_gdf_slice, width=1300)
 
     if map_type_choice in ["Climate"]:
-        map_choice2 = st.selectbox("Choose a map", ["Please select a map type", "Jordan SPI"])
+        map_choice2 = st.selectbox("Choose a map", ["Please select a map type", "Jordan Standardized Precipitation Index"])
     # Choose map type with dropdown
-        if map_choice2 in ["Jordan SPI"]:
+        if map_choice2 in ["Jordan Jordan Standardized Precipitation Index"]:
             def load_data(csv_path):
                 data = pd.read_csv(csv_path)
                 return data
@@ -282,7 +293,7 @@ if start_choice == "Start!":
             # Display ID and name reference table
             with col1:
                 st.subheader("ID and Name Reference Table")
-                st.dataframe(id_name_df)
+                st.dataframe(id_name_df, width=250)
 
             # Add filters
             with col2:
@@ -304,15 +315,16 @@ if start_choice == "Start!":
 
             # Display map when 'Generate Map' button is clicked
             if generate_map:
-                map_to_display = create_map(filtered_gdf1,filtered_gdf, selected_column)
-                folium_static(map_to_display, width=800, height=600)
                 with col2:
+                    map_to_display = create_map(filtered_gdf1,filtered_gdf, selected_column)
+                    folium_static(map_to_display, width=1087, height=600)
                     st.subheader("Generated GeoDataFrame")
                     filtered_gdf['geometry'] = filtered_gdf['geometry'].astype(str)
-                    st.dataframe(filtered_gdf, width=1300)
+                    filtered_gdf_slice = filtered_gdf.iloc[:, 18:]
+                    st.dataframe(filtered_gdf_slice, width=1300)
                     filtered_gdf1['geometry'] = filtered_gdf1['geometry'].astype(str)
                     st.dataframe(filtered_gdf1, width=1300)
-
+            
         if map_choice3 in ["Jordan Health Map"]:
             def prepare_data(csv_path, shp_path):
                 csv_data = pd.read_csv(csv_path)
@@ -367,7 +379,7 @@ if start_choice == "Start!":
             # Display ID and name reference table
             with col1:
                 st.subheader("ID and Name Reference Table")
-                st.dataframe(id_name_df)
+                st.dataframe(id_name_df, width=250)
 
             # Add filters
             with col2:
@@ -387,16 +399,17 @@ if start_choice == "Start!":
 
                 generate_map = st.button("Generate Map")
             if generate_map:
-                map_to_display = create_map(filtered_gdf1,filtered_gdf, selected_column)
-                folium_static(map_to_display, width=800, height=600)
                 with col2:
+                    map_to_display = create_map(filtered_gdf1,filtered_gdf, selected_column)
+                    folium_static(map_to_display, width=800, height=600)
                     st.subheader("Generated GeoDataFrame")
                     filtered_gdf['geometry'] = filtered_gdf['geometry'].astype(str)
-                    st.dataframe(filtered_gdf, width=1300)
+                    filtered_gdf_slice = filtered_gdf.iloc[:, 18:]
+                    st.dataframe(filtered_gdf_slice, width=1300)
                     filtered_gdf1['geometry'] = filtered_gdf1['geometry'].astype(str)
                     st.dataframe(filtered_gdf1, width=1300)
 
-    if map_type_choice in ["Boundaries"]:
+    if map_type_choice in ["Administrative"]:
         map_choice1 = st.selectbox("Choose a map", ["Please select a map type", "Boundaries of Jordan States", "Boundaries of Jordan","Soviet","Jordan Purchasing Power per Capita","Jordan Purchasing Power"])
         # Display other functionalities only if a map type is selected
         if map_choice1 in ["Boundaries of Jordan States", "Boundaries of Jordan"]:
@@ -445,7 +458,7 @@ if start_choice == "Start!":
             # Display ID and name reference table
             with col1:
                 st.subheader("ID and Name Reference Table")
-                st.dataframe(id_name_df)
+                st.dataframe(id_name_df,width=250)
 
             # Add filters
             with col2:
@@ -459,16 +472,16 @@ if start_choice == "Start!":
 
             # Display map when 'Generate Map' button is clicked
             if generate_map:
-                with st.spinner("Generating map..."):
+                with col2:
                     if map_choice1 in ["Boundaries of Jordan States"]:
                         map_to_display = create_map(filtered_gdf, selected_column)
                     elif map_choice1 == "Boundaries of Jordan":
                         map_to_display = create_map(gdf_jordan, selected_column)
                     folium_static(map_to_display, width=800, height=600)
-                with col2:
                     st.subheader("Generated GeoDataFrame")
                     filtered_gdf['geometry'] = filtered_gdf['geometry'].astype(str)
-                    st.dataframe(filtered_gdf, width=1300)
+                    filtered_gdf_slice = filtered_gdf.iloc[:, 18:]
+                    st.dataframe(filtered_gdf_slice, width=1300)
 
         if map_choice1 in ["Jordan Purchasing Power per Capita","Jordan Purchasing Power"]:
             # Function to read, clean, and merge data
@@ -530,16 +543,22 @@ if start_choice == "Start!":
 
             # Display map when 'Generate Map' button is clicked
             if generate_map:
-                with st.spinner("Generating map..."):
+                with col2:
                     if map_choice1 in ["Jordan Purchasing Power per Capita"]:
                         map_to_display = create_map(filtered_gdf, selected_column)
                     elif map_choice1 == "Jordan Purchasing Power":
                         map_to_display = create_map(gdf_jordan, selected_column)
                     folium_static(map_to_display, width=800, height=600)
-                with col2:
                     st.subheader("Generated GeoDataFrame")
                     filtered_gdf['geometry'] = filtered_gdf['geometry'].astype(str)
-                    st.dataframe(filtered_gdf, width=1300)
+                    filtered_gdf_slice = filtered_gdf.iloc[:, 18:]
+                    st.dataframe(filtered_gdf_slice, width=1300)
+
+                with col3:
+                    param = pd.read_csv("dataset/Average Household Size in Jordan/para.csv")
+                    st.subheader("Parameter Reference Table")
+                    st.dataframe(param, width=250)    
+
 
         if map_choice1 in ["Soviet"]:
 
