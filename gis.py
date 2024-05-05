@@ -120,7 +120,7 @@ if start_choice == "Start!":
     if map_type_choice in ["Climate"]:
         map_choice2 = st.selectbox("Choose a map", ["Please select a map type", "Jordan Standardized Precipitation Index"])
     # Choose map type with dropdown
-        if map_choice2 in ["Jordan Jordan Standardized Precipitation Index"]:
+        if map_choice2 in ["Jordan Standardized Precipitation Index"]:
             def load_data(csv_path):
                 data = pd.read_csv(csv_path)
                 return data
